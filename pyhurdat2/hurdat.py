@@ -68,17 +68,25 @@ def isHeader(line):
 def process_uid(uid):
     item={
     "basin": uid[:2],
-    "atcf": uid[1:4],
+    "atcf": uid[2:4],
     "year": uid[4:9]
     }
     return item
 
+def process_name(name):
+    whitespace = len(name.split()[0])
+    totat_chars = 0
+    for part in name.split():
+        totat_chars += len(part)
+        totat_chars +=1
+    r = name[len(name)- totat_chars:]
+    return r
 
 def add_storm(line, header, data):
     header_data = process_uid(line[0])
 
     item = {
-        'name':  pluck("name", line, header),
+        'name':  process_name(line[1]),
         'atcs_name': line[0],
         "basin": header_data["basin"],
         "year": header_data['year'],
@@ -115,8 +123,15 @@ def get_longest_storm(data):
             biggest_storm = data[storm]["atcs_name"]
     return biggest_storm
 
+def get_longest_name(data):
+    max = 0
+    biggest_storm = {}
+    for storm in data:
+        if len(data[storm]['name']) > max:
 
-
+            max = len(data[storm]['name'])
+            biggest_storm = data[storm]["atcs_name"]
+    return biggest_storm
 
 
 def parse_csv(filepath):
@@ -146,5 +161,5 @@ data,count = parse_csv(file)
 print("Scanned %s rows"% str(count))
 print("Processed %s Records"%str(len(data)))
 
-pprint.pprint(data[get_longest_storm(data)])
+pprint.pprint(data[get_longest_name(data)])
 
