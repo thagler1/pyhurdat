@@ -1,6 +1,7 @@
 # base class for reading pyhurdat data
 import csv
 import pprint
+import requests
 
 hurdat2_data_structure = [
     "date",
@@ -73,6 +74,9 @@ def process_uid(uid):
     }
     return item
 
+def strip_white_space(string):
+    return string.lstrip()
+
 def process_name(name):
     whitespace = len(name.split()[0])
     totat_chars = 0
@@ -86,7 +90,7 @@ def add_storm(line, header, data):
     header_data = process_uid(line[0])
 
     item = {
-        'name':  process_name(line[1]),
+        'name':  strip_white_space(process_name(line[1])),
         'atcs_name': line[0],
         "basin": header_data["basin"],
         "year": header_data['year'],
@@ -108,7 +112,7 @@ def add_line(line, header, data, current_storm):
         data.setdefault(uid, current_storm)
 
     # Get column info
-    columnInfo = {item: line[i] for i, item in enumerate(hurdat2_data_structure)}
+    columnInfo = {item: strip_white_space(line[i]) for i, item in enumerate(hurdat2_data_structure)}
 
     data[uid]['data'].append(columnInfo)
 
@@ -153,11 +157,17 @@ def parse_csv(filepath):
         count = i
     return data, count
 
-
+def post_item(item):
+    requests.post("http://localhost:8000/hurdat", json=item)
+    print("posted")
 
 file = r"C:\Users\tdhag\Documents\github\pyhurdat\sampleData\hurdat2.csv"
 
 data,count = parse_csv(file)
+
+for item in data:
+    post_item(data[item])
+
 print("Scanned %s rows"% str(count))
 print("Processed %s Records"%str(len(data)))
 
